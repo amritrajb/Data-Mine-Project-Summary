@@ -3,10 +3,6 @@ from bs4 import BeautifulSoup
 import xlsxwriter
 import pandas as pd
 
-url = "https://projects.the-examples-book.com/companies/"
-reqs = requests.get(url)
-soup = BeautifulSoup(reqs.text, 'html.parser')
-
 def extract_project_data(url):
     project_info_dict = {}
     reqs = requests.get(url)
@@ -41,23 +37,38 @@ def extract_project_data(url):
             project_info_dict["Description"] = description
     return project_info_dict
 
-print(extract_project_data("https://projects.the-examples-book.com/projects/protect-children-from-accidental-exposure/"))
+#print(extract_project_data("https://projects.the-examples-book.com/projects/protect-children-from-accidental-exposure/"))
 
+base_url = 'https://projects.the-examples-book.com/'
+url = base_url + "companies/"
+reqs = requests.get(url)
+soup = BeautifulSoup(reqs.text, 'html.parser')
+
+top_level_urls = [base_url, url, base_url + 'projects/', base_url + 'projects/search']
 url_dict = {}
 for link in soup.find_all('a'):
     url_name = "https://projects.the-examples-book.com" + link.get('href')
-    #print(url_name)
     url_dict[url_name] = []
+for url in top_level_urls:
+    del url_dict[url]
+#print(url_dict)
 
-project_list = []
+#counter = 0
 for url_name in url_dict:
+    print(url_name)
+    #counter += 1
+    #if counter >= 3:
+        #break
     reqs = requests.get(url_name)
     soup = BeautifulSoup(reqs.text, 'html.parser')
  
     for sub_url in soup.find_all('a'):
         sub_url_name = "https://projects.the-examples-book.com" + sub_url.get('href')
-        url_dict[url_name].append(sub_url_name)
-
+        sub_url_data = extract_project_data(sub_url_name)
+        url_dict[url_name] = sub_url_data
+        
+print(url_dict)
+exit(1)
 
 
 # Create a Pandas dataframe from some data.
