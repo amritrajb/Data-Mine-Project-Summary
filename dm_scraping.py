@@ -68,8 +68,6 @@ for url_name in url_dict:
         url_dict[url_name] = sub_url_data
         
 print(url_dict)
-exit(1)
-
 
 # Create a Pandas dataframe from some data.
 df = pd.DataFrame.from_dict(url_dict, orient='index')
