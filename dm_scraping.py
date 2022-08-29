@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import xlsxwriter
 import pandas as pd
+import pprint
 
 def extract_project_data(url):
     project_info_dict = {}
@@ -53,21 +54,27 @@ for url in top_level_urls:
     del url_dict[url]
 #print(url_dict)
 
-#counter = 0
+counter = 0
 for url_name in url_dict:
     print(url_name)
-    #counter += 1
-    #if counter >= 3:
-        #break
+    counter += 1
+    if counter >= 5:
+        break
     reqs = requests.get(url_name)
     soup = BeautifulSoup(reqs.text, 'html.parser')
  
+    sub_url_data_list = []
     for sub_url in soup.find_all('a'):
-        sub_url_name = "https://projects.the-examples-book.com" + sub_url.get('href')
-        sub_url_data = extract_project_data(sub_url_name)
-        url_dict[url_name] = sub_url_data
+        #print(sub_url)
+        if not "<a class=" in str(sub_url):
+            #print(sub_url)
+            sub_url_name = "https://projects.the-examples-book.com" + sub_url.get('href')
+            sub_url_data = extract_project_data(sub_url_name)
+            sub_url_data_list.append(sub_url_data)
+
+    url_dict[url_name] = sub_url_data_list
         
-print(url_dict)
+pprint.pprint(url_dict)
 
 # Create a Pandas dataframe from some data.
 df = pd.DataFrame.from_dict(url_dict, orient='index')
