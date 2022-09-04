@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 import xlsxwriter
 import pandas as pd
 import pprint
+import os
 
 def extract_project_data(url):
     project_info_dict = {}
@@ -57,9 +58,9 @@ for url in top_level_urls:
 counter = 0
 for url_name in url_dict:
     print(url_name)
-    counter += 1
-    if counter >= 5:
-        break
+    # counter += 1
+    # if counter >= 5:
+    #     break
     reqs = requests.get(url_name)
     soup = BeautifulSoup(reqs.text, 'html.parser')
  
@@ -74,19 +75,36 @@ for url_name in url_dict:
 
     url_dict[url_name] = sub_url_data_list
         
-pprint.pprint(url_dict)
+#pprint.pprint(url_dict)
 
-# Create a Pandas dataframe from some data.
-df = pd.DataFrame.from_dict(url_dict, orient='index')
-#print(df.head)
+workbook = xlsxwriter.Workbook(os.path.join(os.path.dirname(os.path.abspath(__file__)), "data_mine_projects.xlsx"))
+worksheet = workbook.add_worksheet()
 
-# Create a Pandas Excel writer using XlsxWriter as the engine.
-writer = pd.ExcelWriter('data_mine_projects.xlsx', engine='xlsxwriter')
+row =  0
+column = 1
+company_column = 0
 
-# Convert the dataframe to an XlsxWriter Excel object.
-df.to_excel(writer, sheet_name='2022-2023 Projects')
+for k,v in url_dict.items():
+    company_name = k.split("/")[-2]
+    worksheet.write(row, company_column, company_name)
+    for project in v:
+        project_name = project["url"].split("/")[-2]
+        worksheet.write(row, column, project_name)
+        row += 1
 
-# Close the Pandas Excel writer and output the Excel file.
-writer.save()
+workbook.close()
+
+# # Create a Pandas dataframe from some data.
+# df = pd.DataFrame.from_dict(url_dict, orient='index')
+# #print(df.head)
+
+# # Create a Pandas Excel writer using XlsxWriter as the engine.
+# writer = pd.ExcelWriter('data_mine_projects.xlsx', engine='xlsxwriter')
+
+# # Convert the dataframe to an XlsxWriter Excel object.
+# df.to_excel(writer, sheet_name='2022-2023 Projects')
+
+# # Close the Pandas Excel writer and output the Excel file.
+# writer.save()
 
     
