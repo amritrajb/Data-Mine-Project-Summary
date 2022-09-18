@@ -15,22 +15,22 @@ def extract_project_data(url):
     for index, element in enumerate(lines):
         if "Lecture time:" in element:
             lecture_time = element.split(":",1)
-            project_info_dict["Lecture time"] = lecture_time[1:]
+            project_info_dict["Lecture time"] = lecture_time[1:][0]
         if "Lab time:" in element:
             lab_time = element.split(":",1)
-            project_info_dict["Lab time"] = lab_time[1:]
+            project_info_dict["Lab time"] = lab_time[1:][0]
         if "Domain:" in element:
             domain = element.split(":",1)
-            project_info_dict["Domain"] = domain[1:]
+            project_info_dict["Domain"] = domain[1:][0]
         if "Keywords:" in element:
             keywords = element.split(":",1)
-            project_info_dict["Keywords"] = keywords[1:]
+            project_info_dict["Keywords"] = keywords[1:][0]
         if "Tools:" in element:
             tools = element.split(":",1)
-            project_info_dict["Tools"] = tools[1:]
+            project_info_dict["Tools"] = tools[1:][0]
         if "Citizenship:" in element:
             citizenship = element.split(":",1)
-            project_info_dict["Citizenship"] = citizenship[1:]
+            project_info_dict["Citizenship"] = citizenship[1:][0]
         if "Summary" in element:
             summary = lines[index + 1]
             project_info_dict["Summary"] = summary
@@ -38,6 +38,13 @@ def extract_project_data(url):
             description = lines[index + 1]
             project_info_dict["Description"] = description
     return project_info_dict
+
+def cell_write(worksheet, row, column, cell_entry):
+    cell_format = workbook.add_format({'text_wrap': True})
+    cell_format.set_align('left')
+    cell_format.set_align('vcenter')
+    worksheet.set_column(row, column, len(cell_entry))
+    worksheet.write(row, column, cell_entry, cell_format)
 
 #print(extract_project_data("https://projects.the-examples-book.com/projects/protect-children-from-accidental-exposure/"))
 
@@ -80,16 +87,29 @@ for url_name in url_dict:
 workbook = xlsxwriter.Workbook(os.path.join(os.path.dirname(os.path.abspath(__file__)), "data_mine_projects.xlsx"))
 worksheet = workbook.add_worksheet()
 
-row =  0
-column = 1
-company_column = 0
+headings = ["Company Name", "Project Name", "Lecture time", "Lab time", "Domain", 
+    "Keywords", "Tools", "Citizenship", "Summary", "Description"]
+heading_column = 0
+heading_format = workbook.add_format({'bold': True})
+for element in headings:
+    worksheet.write(0, heading_column, element, heading_format)
+    heading_column += 1
+
+row =  1
 
 for k,v in url_dict.items():
     company_name = k.split("/")[-2]
-    worksheet.write(row, company_column, company_name)
+    cell_write(worksheet, row, 0, company_name)
     for project in v:
         project_name = project["url"].split("/")[-2]
-        worksheet.write(row, column, project_name)
+        cell_write(worksheet, row, 1, project_name)
+        column = 2
+        for element in headings:
+            if (element != "Company Name") and (element != "Project Name"): 
+                cell_entry = project[element]
+                #print(cell_entry)
+                cell_write(worksheet, row, column, cell_entry)
+                column += 1
         row += 1
 
 workbook.close()
