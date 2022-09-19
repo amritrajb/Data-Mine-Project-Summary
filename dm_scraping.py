@@ -46,7 +46,6 @@ def cell_write(worksheet, row, column, cell_entry):
     worksheet.set_column(row, column, len(cell_entry))
     worksheet.write(row, column, cell_entry, cell_format)
 
-#print(extract_project_data("https://projects.the-examples-book.com/projects/protect-children-from-accidental-exposure/"))
 
 base_url = 'https://projects.the-examples-book.com/'
 url = base_url + "companies/"
@@ -87,8 +86,8 @@ for url_name in url_dict:
 workbook = xlsxwriter.Workbook(os.path.join(os.path.dirname(os.path.abspath(__file__)), "data_mine_projects.xlsx"))
 worksheet = workbook.add_worksheet()
 
-headings = ["Company Name", "Project Name", "Lecture time", "Lab time", "Domain", 
-    "Keywords", "Tools", "Citizenship", "Summary", "Description"]
+headings = {"Company Name" : 0, "Project Name" : 0, "Lecture time" : 0, "Lab time" : 0, "Domain" : 0, 
+    "Keywords" : 0, "Tools" : 0, "Citizenship" : 0, "Summary" : 0, "Description" : 0}
 heading_column = 0
 heading_format = workbook.add_format({'bold': True})
 for element in headings:
@@ -99,32 +98,34 @@ row =  1
 
 for k,v in url_dict.items():
     company_name = k.split("/")[-2]
+    # Remember the max column name
+    print(headings["Company Name"],"before")
+    print(len(company_name))
+    if len(company_name) > headings["Company Name"]:
+        headings["Company Name"] = len(company_name)
+    print(len(company_name))
+    print(headings["Company Name"],"after")
+    
     cell_write(worksheet, row, 0, company_name)
     for project in v:
         project_name = project["url"].split("/")[-2]
+        # Remember the max column name
+        if len(project_name) > headings["Project Name"]:
+            headings["Project Name"] = len(project_name)
         cell_write(worksheet, row, 1, project_name)
         column = 2
-        for element in headings:
-            if (element != "Company Name") and (element != "Project Name"): 
-                cell_entry = project[element]
-                #print(cell_entry)
+        for key,value in headings.items():
+            if (key != "Company Name") and (key != "Project Name"): 
+                cell_entry = project[key]
+                # Remember the max column name
+                if len(cell_entry) > headings[key]:
+                    headings[key] = len(cell_entry)
                 cell_write(worksheet, row, column, cell_entry)
                 column += 1
         row += 1
 
+# Set column length for heading to match with the longest project name
+rows = row
+for row in range(rows):
+    worksheet.set_column(row, 0, headings["Company Name"])
 workbook.close()
-
-# # Create a Pandas dataframe from some data.
-# df = pd.DataFrame.from_dict(url_dict, orient='index')
-# #print(df.head)
-
-# # Create a Pandas Excel writer using XlsxWriter as the engine.
-# writer = pd.ExcelWriter('data_mine_projects.xlsx', engine='xlsxwriter')
-
-# # Convert the dataframe to an XlsxWriter Excel object.
-# df.to_excel(writer, sheet_name='2022-2023 Projects')
-
-# # Close the Pandas Excel writer and output the Excel file.
-# writer.save()
-
-    
