@@ -4,4 +4,9 @@ The Purdue Data Mine is an excellent program helping students to get real-world 
 
 This python tool that scrapes the Purdue Data Mine website: https://projects.the-examples-book.com/companies/. It then generates an Excel File which summarizes all the companies and projects for the current year. The tool uses the BeautifulSoup Python library to extract the web contents and XLSXWriter to write to an excel file.
 
-To use the tool, simply run the dm_scraping.py 
+The current list of projects are provided in: 
+
+To use the tool, simply run:
+```
+python dm_scraping.py 
+```
