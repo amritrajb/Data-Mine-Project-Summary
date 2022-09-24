@@ -2,7 +2,6 @@ import requests
 from bs4 import BeautifulSoup
 import xlsxwriter
 import pandas as pd
-import pprint
 import os
 
 def extract_project_data(url):
@@ -46,6 +45,13 @@ def cell_write(worksheet, row, column, cell_entry):
     worksheet.set_column(row, column, len(cell_entry))
     worksheet.write(row, column, cell_entry, cell_format)
 
+def url_write(worksheet, row, column, cell_entry, url):
+    cell_format = workbook.add_format({'text_wrap': True})
+    cell_format.set_align('left')
+    cell_format.set_align('vcenter')
+    worksheet.set_column(row, column, len(cell_entry))
+    worksheet.write_url(row, column, url, string = cell_entry)
+
 
 base_url = 'https://projects.the-examples-book.com/'
 url = base_url + "companies/"
@@ -63,7 +69,7 @@ for url in top_level_urls:
 
 counter = 0
 for url_name in url_dict:
-    print(url_name)
+    #print(url_name)
     # counter += 1
     # if counter >= 5:
     #     break
@@ -80,8 +86,6 @@ for url_name in url_dict:
             sub_url_data_list.append(sub_url_data)
 
     url_dict[url_name] = sub_url_data_list
-        
-#pprint.pprint(url_dict)
 
 workbook = xlsxwriter.Workbook(os.path.join(os.path.dirname(os.path.abspath(__file__)), "data_mine_projects.xlsx"))
 worksheet = workbook.add_worksheet()
@@ -99,14 +103,14 @@ row =  1
 for k,v in url_dict.items():
     company_name = k.split("/")[-2]
     # Remember the max column name
-    print(headings["Company Name"],"before")
-    print(len(company_name))
+    #print(headings["Company Name"],"before")
+    #print(len(company_name))
     if len(company_name) > headings["Company Name"]:
         headings["Company Name"] = len(company_name)
-    print(len(company_name))
-    print(headings["Company Name"],"after")
+    #print(len(company_name))
+    #print(headings["Company Name"],"after")
     
-    cell_write(worksheet, row, 0, company_name)
+    url_write(worksheet, row, 0, company_name, k)
     for project in v:
         project_name = project["url"].split("/")[-2]
         # Remember the max column name
