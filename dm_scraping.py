@@ -1,9 +1,19 @@
+""" 
+This python tool that scrapes the Purdue Data Mine website: 
+https://projects.the-examples-book.com/companies/.
+This generates an Excel File which summarizes all the companies and 
+projects for the current year.
+
+The tool uses the BeautifulSoup Python library to extract the web contents 
+and XLSXWriter to write to an excel file.
+"""
+
 import requests
 from bs4 import BeautifulSoup
 import xlsxwriter
-import pandas as pd
 import os
 
+# Function for extracting project info from the company url
 def extract_project_data(url):
     project_info_dict = {}
     reqs = requests.get(url)
@@ -38,6 +48,7 @@ def extract_project_data(url):
             project_info_dict["Description"] = description
     return project_info_dict
 
+# Function to write and format Excel cells
 def cell_write(worksheet, row, column, cell_entry):
     cell_format = workbook.add_format({'text_wrap': True})
     cell_format.set_align('left')
@@ -45,14 +56,13 @@ def cell_write(worksheet, row, column, cell_entry):
     worksheet.set_column(row, column, len(cell_entry))
     worksheet.write(row, column, cell_entry, cell_format)
 
+# Function to write and format links in Excel cells
 def url_write(worksheet, row, column, cell_entry, url):
-    cell_format = workbook.add_format({'text_wrap': True})
-    cell_format.set_align('left')
-    cell_format.set_align('vcenter')
     worksheet.set_column(row, column, len(cell_entry))
     worksheet.write_url(row, column, url, string = cell_entry)
 
-
+# Initializes the url hierarchy. 
+# Update as necessary based on changes in the website's url hierarchy.
 base_url = 'https://projects.the-examples-book.com/'
 url = base_url + "companies/"
 reqs = requests.get(url)
@@ -61,18 +71,15 @@ soup = BeautifulSoup(reqs.text, 'html.parser')
 top_level_urls = [base_url, url, base_url + 'projects/', base_url + 'projects/search']
 url_dict = {}
 for link in soup.find_all('a'):
-    url_name = "https://projects.the-examples-book.com" + link.get('href')
+    url_name = base_url[:-1] + link.get('href')
     url_dict[url_name] = []
-for url in top_level_urls:
+for url in top_level_urls: # Removes irrelevant urls
     del url_dict[url]
 #print(url_dict)
 
+# Scrape through all the company urls and extract the sub-project information.
 counter = 0
 for url_name in url_dict:
-    #print(url_name)
-    # counter += 1
-    # if counter >= 5:
-    #     break
     reqs = requests.get(url_name)
     soup = BeautifulSoup(reqs.text, 'html.parser')
  
@@ -81,15 +88,18 @@ for url_name in url_dict:
         #print(sub_url)
         if not "<a class=" in str(sub_url):
             #print(sub_url)
-            sub_url_name = "https://projects.the-examples-book.com" + sub_url.get('href')
+            sub_url_name = base_url[:-1] + sub_url.get('href')
             sub_url_data = extract_project_data(sub_url_name)
             sub_url_data_list.append(sub_url_data)
 
     url_dict[url_name] = sub_url_data_list
 
-workbook = xlsxwriter.Workbook(os.path.join(os.path.dirname(os.path.abspath(__file__)), "data_mine_projects.xlsx"))
+# Initialize the Excel Workbook
+excel_file_name = "data_mine_projects.xlsx" # Change as needed
+workbook = xlsxwriter.Workbook(os.path.join(os.path.dirname(os.path.abspath(__file__)), excel_file_name))
 worksheet = workbook.add_worksheet()
 
+# Add headers to the Excel File
 headings = {"Company Name" : 0, "Project Name" : 0, "Lecture time" : 0, "Lab time" : 0, "Domain" : 0, 
     "Keywords" : 0, "Tools" : 0, "Citizenship" : 0, "Summary" : 0, "Description" : 0}
 heading_column = 0
@@ -100,6 +110,7 @@ for element in headings:
 
 row =  1
 
+# Add all project data to the Excel File
 for k,v in url_dict.items():
     company_name = k.split("/")[-2]
     # Remember the max column name
